@@ -13,63 +13,73 @@
 
 using Piece = std::pair<int,int>;
 using Pieces = std::vector<Piece>;
+using MaximalChains = std::vector<Pieces>;
 
-class Bridge {
-public:
-    Bridge(const Pieces &p);
 
-private:
-    Pieces pieces;
-};
-
-Bridge::Bridge(const Pieces &p): pieces{p} {
-
-}
-
-/**
- * Recursive method to determine the greatest rank (by some chacteristc)  of a bridge using the specified pieces,
- * with the last connection being connector.
- * @param connector the connector end of the previous piece (0 to start)
- * @param pieces the pieces left
- * #param selected the pieces selected
- * @param rank so far
- * @param length so far
- * @return the highest score possible using these pieces
- */
-int max_strength(int connector, Pieces pieces, int score) {
-    // If we have no pieces left, we are done.
-    if (pieces.empty())
-        return score;
-
+const MaximalChains findMaximalChains(int connector, Pieces piecesSoFar, Pieces pieces) {
     // Find the candidate pieces for this position.
+    // If there are no pieces to end by we are done.
     std::vector<int> candidates;
     for (int i=0; i < pieces.size(); ++i) {
         const auto [a,b] = pieces[i];
         if (a == connector || b == connector)
             candidates.emplace_back(i);
     }
-    if (candidates.empty())
-        return score;
+    if (candidates.empty()) {
+        return MaximalChains{piecesSoFar};
+    }
 
-    int maxScore = score;
+    MaximalChains chains;
     for (const auto candidate: candidates) {
-        const auto &piece = pieces[candidate];
+        const auto piece = pieces[candidate];
         const auto [a, b] = piece;
         int nextConnector = connector == a ? b : a;
-
 
         Pieces remainingPieces = pieces;
         remainingPieces.erase(remainingPieces.begin() + candidate);
 
-        int nextScore = max_strength(nextConnector, remainingPieces, score + a + b);
-        if (nextScore > maxScore)
-            maxScore = nextScore;
+        Pieces newPiecesSoFar = piecesSoFar;
+        newPiecesSoFar.emplace_back(piece);
+
+        MaximalChains newChains = findMaximalChains(nextConnector, newPiecesSoFar, remainingPieces);
+        std::copy(newChains.cbegin(), newChains.cend(), std::back_inserter(chains));
     }
 
-    return maxScore;
+    return chains;
 }
 
+const MaximalChains find_longest(const MaximalChains &chains) {
+    MaximalChains maxchains;
+    int len = 0;
 
+    for  (const auto &c: chains) {
+        if (c.size() < len) continue;
+        if (c.size() > len) maxchains.clear();
+        len = c.size();
+        maxchains.emplace_back(c);
+    }
+
+    return maxchains;
+}
+
+int find_strongest(const MaximalChains &chains) {
+    int strength = 0;
+
+    for (const auto &c: chains) {
+        int currStrength = 0;
+        std::for_each(c.cbegin(), c.cend(), [&currStrength](const auto &p) {
+            const auto [a,b]  = p;
+            currStrength += a + b;
+        });
+        if (currStrength > strength)
+            strength = currStrength;
+
+    }
+
+    return strength;
+}
+
+// Strongest is 1695
 int main() {
     Pieces pieces;
 
@@ -80,6 +90,10 @@ int main() {
         pieces.emplace_back(std::make_pair(a, b));
     }
 
-    int max_str =  max_strength(0, pieces, 0);
-    std::cout << "Max strength is " << max_str << std::endl;
+    auto all = findMaximalChains(0, Pieces{}, pieces);
+    auto max_str = find_strongest(all);
+    std::cout << "*** Highest strength: " << max_str << std::endl;
+
+    const auto mc  = find_longest(all);
+    std::cout << "*** Maximum length highest strength is " << find_strongest(mc) << std::endl;
 }
