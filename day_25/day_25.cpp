@@ -35,7 +35,7 @@ private:
 };
 
 TuringMachine::TuringMachine()
-    : state{State::A}, headpos{}, tape{0} {}
+        : state{State::A}, headpos{}, tape{0} {}
 
 int TuringMachine::tape_size() const noexcept {
     return static_cast<int>(tape.size());
@@ -46,10 +46,10 @@ void TuringMachine::transition() noexcept {
         tape.emplace_back(0);
     }
     if (headpos < 0)
-    while (headpos < 0) {
-        tape.emplace_front(0);
-        ++headpos;
-    }
+        while (headpos < 0) {
+            tape.emplace_front(0);
+            ++headpos;
+        }
 
     switch (state) {
         case State::A:
@@ -128,7 +128,7 @@ void TuringMachine::transition() noexcept {
 }
 
 int TuringMachine::diagnostic_checksum() const noexcept {
-    return std::count(tape.cbegin(), tape.cend(), 1);
+    return static_cast<int>(std::count(tape.cbegin(), tape.cend(), 1));
 }
 
 int main() {

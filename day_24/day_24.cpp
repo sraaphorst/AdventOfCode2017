@@ -16,7 +16,7 @@ using Pieces = std::vector<Piece>;
 using MaximalChains = std::vector<Pieces>;
 
 
-const MaximalChains findMaximalChains(int connector, Pieces piecesSoFar, Pieces pieces) {
+const MaximalChains findMaximalChains(int connector, const Pieces &piecesSoFar, Pieces pieces) {
     // Find the candidate pieces for this position.
     // If there are no pieces to end by we are done.
     std::vector<int> candidates;
@@ -50,7 +50,7 @@ const MaximalChains findMaximalChains(int connector, Pieces piecesSoFar, Pieces 
 
 const MaximalChains find_longest(const MaximalChains &chains) {
     MaximalChains maxchains;
-    int len = 0;
+    size_t len = 0;
 
     for  (const auto &c: chains) {
         if (c.size() < len) continue;
